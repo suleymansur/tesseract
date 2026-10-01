@@ -1,0 +1,19 @@
+# Ortam / gizli anahtarlar
+.env
+
+# Sanal ortam
+venv/
+env/
+__pycache__/
+*.pyc
+
+# Veritabani dosyasi
+*.db
+instance/
+
+# IDE
+.vscode/
+.idea/
+
+# Isletim sistemi
+.DS_Store

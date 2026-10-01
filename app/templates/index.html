@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tesseract | Kurumsal Haberleşme, Güvenlik ve Veri Altyapısı</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0B0F14;
+    --surface:#121821;
+    --surface-alt:#1A222E;
+    --border:#28323F;
+    --text:#E8EDF3;
+    --text-dim:#8B96A5;
+    --accent:#3E7BFA;
+    --accent-soft:rgba(62,123,250,.15);
+    --ok:#3ED598;
+    --warn:#F5A623;
+    --radius:14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(circle at 15% 0%, rgba(62,123,250,.10), transparent 40%),
+      radial-gradient(circle at 85% 20%, rgba(62,213,152,.06), transparent 35%),
+      var(--bg);
+    color:var(--text);
+    font-family:'Inter',sans-serif;
+    min-height:100vh;
+    line-height:1.5;
+  }
+  h1,h2,h3,.wordmark{font-family:'Space Grotesk',sans-serif;}
+  .mono{font-family:'IBM Plex Mono',monospace;}
+  a{color:inherit;}
+
+  .shell{max-width:1180px;margin:0 auto;padding:32px 24px 80px;}
+
+  /* ---- Header / Z top-left ---- */
+  header{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:48px;}
+  .brand{display:flex;align-items:center;gap:12px;}
+  .brand-mark{
+    width:38px;height:38px;border-radius:10px;
+    background:linear-gradient(135deg,var(--accent),#1E4FD1);
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Space Grotesk';font-weight:700;font-size:18px;color:#fff;
+    flex-shrink:0;
+  }
+  .brand-text .wordmark{font-size:19px;font-weight:700;letter-spacing:.3px;}
+  .brand-text .tagline{font-size:12.5px;color:var(--text-dim);margin-top:1px;}
+  nav a{font-size:14px;color:var(--text-dim);text-decoration:none;margin-left:24px;}
+  nav a:hover{color:var(--text);}
+
+  /* ---- Hero / Z: headline left, chat right ---- */
+  .hero{display:grid;grid-template-columns:1.05fr 1fr;gap:44px;align-items:start;}
+  @media (max-width:900px){.hero{grid-template-columns:1fr;}}
+
+  .hero h1{font-size:clamp(30px,4vw,42px);line-height:1.15;font-weight:600;margin:0 0 18px;}
+  .hero p.lead{color:var(--text-dim);font-size:16px;max-width:46ch;margin:0 0 28px;}
+
+  .status-row{display:flex;gap:22px;flex-wrap:wrap;margin-bottom:36px;}
+  .status-item{font-size:13px;color:var(--text-dim);display:flex;align-items:center;gap:7px;}
+  .dot{width:7px;height:7px;border-radius:50%;background:var(--ok);box-shadow:0 0 8px var(--ok);}
+
+  .topology{margin-top:8px;}
+  .topology svg{width:100%;height:auto;max-width:460px;display:block;}
+  .topology-label{font-size:11px;color:var(--text-dim);text-transform:none;margin-top:10px;}
+
+  /* ---- Chat card: glassmorphism ---- */
+  .chat-card{
+    background:rgba(26,34,46,.55);
+    border:1px solid rgba(255,255,255,.08);
+    border-radius:var(--radius);
+    backdrop-filter:blur(18px) saturate(140%);
+    -webkit-backdrop-filter:blur(18px) saturate(140%);
+    box-shadow:0 20px 60px -20px rgba(0,0,0,.6);
+    display:flex;flex-direction:column;
+    height:520px;
+    overflow:hidden;
+  }
+  .chat-head{
+    padding:16px 20px;border-bottom:1px solid rgba(255,255,255,.07);
+    display:flex;align-items:center;gap:10px;
+  }
+  .chat-head .avatar{
+    width:30px;height:30px;border-radius:8px;background:var(--accent-soft);
+    display:flex;align-items:center;justify-content:center;color:var(--accent);font-size:14px;font-weight:600;
+  }
+  .chat-head .who{font-size:14px;font-weight:600;}
+  .chat-head .sub{font-size:12px;color:var(--text-dim);}
+
+  .chat-body{flex:1;overflow-y:auto;padding:18px 20px;display:flex;flex-direction:column;gap:14px;}
+  .msg{max-width:86%;padding:11px 14px;border-radius:12px;font-size:14.5px;}
+  .msg.ai{background:var(--surface-alt);border:1px solid var(--border);align-self:flex-start;border-bottom-left-radius:4px;}
+  .msg.user{background:var(--accent);color:#fff;align-self:flex-end;border-bottom-right-radius:4px;}
+  .msg.pending{color:var(--text-dim);font-style:italic;}
+
+  .chat-input{
+    display:flex;gap:10px;padding:14px;border-top:1px solid rgba(255,255,255,.07);
+  }
+  .chat-input input{
+    flex:1;background:var(--surface);border:1px solid var(--border);border-radius:10px;
+    color:var(--text);padding:11px 14px;font-size:14px;font-family:inherit;
+  }
+  .chat-input input:focus{outline:none;border-color:var(--accent);}
+  .chat-input button{
+    background:var(--accent);border:none;color:#fff;border-radius:10px;
+    padding:0 18px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;
+  }
+  .chat-input button:disabled{opacity:.5;cursor:default;}
+
+  /* ---- Product strip ---- */
+  .products{margin:64px 0 56px;}
+  .products h2{font-size:14px;text-transform:none;color:var(--text-dim);font-weight:500;margin:0 0 18px;font-family:'Inter';}
+  .product-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;}
+  @media (max-width:900px){.product-grid{grid-template-columns:repeat(2,1fr);}}
+  .product-card{
+    background:var(--surface);border:1px solid var(--border);border-radius:12px;
+    padding:18px 16px;
+  }
+  .product-card .icon{color:var(--accent);margin-bottom:10px;}
+  .product-card h3{font-size:15px;margin:0 0 5px;font-weight:600;}
+  .product-card p{font-size:12.5px;color:var(--text-dim);margin:0;line-height:1.45;}
+
+  /* ---- Lead form ---- */
+  .lead-section{
+    background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+    padding:32px;display:grid;grid-template-columns:1fr 1.3fr;gap:36px;
+  }
+  @media (max-width:800px){.lead-section{grid-template-columns:1fr;}}
+  .lead-section h2{font-size:22px;margin:0 0 10px;font-weight:600;}
+  .lead-section p{color:var(--text-dim);font-size:14.5px;margin:0;max-width:38ch;}
+
+  form.lead-form{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  .field{display:flex;flex-direction:column;gap:6px;}
+  .field.full{grid-column:1/-1;}
+  .field label{font-size:12.5px;color:var(--text-dim);}
+  .field input,.field select,.field textarea{
+    background:var(--surface-alt);border:1px solid var(--border);border-radius:9px;
+    color:var(--text);padding:10px 12px;font-size:14px;font-family:inherit;
+  }
+  .field textarea{resize:vertical;min-height:60px;}
+  .field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--accent);}
+  .submit-row{grid-column:1/-1;display:flex;align-items:center;gap:14px;margin-top:4px;}
+  .submit-row button{
+    background:var(--accent);border:none;color:#fff;border-radius:9px;
+    padding:11px 22px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;
+  }
+  .submit-row button:disabled{opacity:.5;cursor:default;}
+  .form-status{font-size:13px;}
+  .form-status.ok{color:var(--ok);}
+  .form-status.err{color:#F16A6A;}
+
+  footer{margin-top:56px;text-align:center;color:var(--text-dim);font-size:12.5px;}
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <header>
+    <div class="brand">
+      <div class="brand-mark">T</div>
+      <div class="brand-text">
+        <div class="wordmark">TESSERACT</div>
+        <div class="tagline">Kurumsal haberleşme, güvenlik ve veri altyapısı</div>
+      </div>
+    </div>
+    <nav>
+      <a href="#urunler">Ürünler</a>
+      <a href="#iletisim">İletişim</a>
+      <a href="/dashboard">Yönetim Paneli</a>
+    </nav>
+  </header>
+
+  <section class="hero">
+    <div>
+      <h1>Hastaneden askeri tesise, bankadan okula — tek altyapı.</h1>
+      <p class="lead">Tesseract; Switch, Router, Access Point, NVR ve Storage çözümlerini yönetim yazılımlarıyla birlikte sunar. Binanızın haberleşme ve güvenlik ihtiyacını uçtan uca karşılarız.</p>
+
+      <div class="status-row">
+        <div class="status-item"><span class="dot"></span> Ağ omurgası aktif</div>
+        <div class="status-item"><span class="dot" style="background:var(--accent);box-shadow:0 0 8px var(--accent);"></span> Kayıt altyapısı senkron</div>
+        <div class="status-item"><span class="dot" style="background:var(--warn);box-shadow:0 0 8px var(--warn);"></span> 7/24 izleme</div>
+      </div>
+
+      <div class="topology">
+        <svg viewBox="0 0 460 190" xmlns="http://www.w3.org/2000/svg">
+          <g stroke="#28323F" stroke-width="1.5" fill="none">
+            <line x1="230" y1="95" x2="60" y2="30"/>
+            <line x1="230" y1="95" x2="60" y2="160"/>
+            <line x1="230" y1="95" x2="400" y2="30"/>
+            <line x1="230" y1="95" x2="400" y2="95"/>
+            <line x1="230" y1="95" x2="400" y2="160"/>
+          </g>
+          <circle cx="230" cy="95" r="20" fill="#1A222E" stroke="#3E7BFA" stroke-width="2"/>
+          <text x="230" y="99" font-size="9" fill="#3E7BFA" text-anchor="middle" font-family="IBM Plex Mono">CORE</text>
+
+          <circle cx="60" cy="30" r="14" fill="#121821" stroke="#28323F" stroke-width="1.5"/>
+          <text x="60" y="55" font-size="10" fill="#8B96A5" text-anchor="middle" font-family="IBM Plex Mono">Router</text>
+
+          <circle cx="60" cy="160" r="14" fill="#121821" stroke="#28323F" stroke-width="1.5"/>
+          <text x="60" y="182" font-size="10" fill="#8B96A5" text-anchor="middle" font-family="IBM Plex Mono">Switch</text>
+
+          <circle cx="400" cy="30" r="14" fill="#121821" stroke="#28323F" stroke-width="1.5"/>
+          <text x="400" y="55" font-size="10" fill="#8B96A5" text-anchor="middle" font-family="IBM Plex Mono">AP</text>
+
+          <circle cx="400" cy="95" r="14" fill="#121821" stroke="#28323F" stroke-width="1.5"/>
+          <text x="400" y="118" font-size="10" fill="#8B96A5" text-anchor="middle" font-family="IBM Plex Mono">NVR</text>
+
+          <circle cx="400" cy="160" r="14" fill="#121821" stroke="#28323F" stroke-width="1.5"/>
+          <text x="400" y="182" font-size="10" fill="#8B96A5" text-anchor="middle" font-family="IBM Plex Mono">Storage</text>
+        </svg>
+      </div>
+    </div>
+
+    <div class="chat-card">
+      <div class="chat-head">
+        <div class="avatar">T</div>
+        <div>
+          <div class="who">Tesseract Asistanı</div>
+          <div class="sub">Kurumunuza uygun çözümü birlikte bulalım</div>
+        </div>
+      </div>
+      <div class="chat-body" id="chatBody">
+        <div class="msg ai">Merhaba, ben Tesseract'ın yapay zeka asistanıyım. Hangi tür bir kurumu temsil ediyorsunuz? (hastane, okul, askeriye, banka, kamu, ofis...)</div>
+      </div>
+      <div class="chat-input">
+        <input id="chatInput" type="text" placeholder="Mesajınızı yazın..." autocomplete="off">
+        <button id="chatSend">Sor</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="products" id="urunler">
+    <h2>Ürün Ailelerimiz</h2>
+    <div class="product-grid">
+      <div class="product-card">
+        <div class="icon">▤</div><h3>Switch</h3>
+        <p>Bina içi ağ omurgasını oluşturan yönetilebilir anahtarlama katmanı.</p>
+      </div>
+      <div class="product-card">
+        <div class="icon">⇄</div><h3>Router</h3>
+        <p>Kurumlar arası ve internet bağlantısını yöneten yönlendiriciler.</p>
+      </div>
+      <div class="product-card">
+        <div class="icon">◎</div><h3>Access Point</h3>
+        <p>Kurum içi kapsamlı ve güvenli kablosuz ağ altyapısı.</p>
+      </div>
+      <div class="product-card">
+        <div class="icon">▣</div><h3>NVR</h3>
+        <p>Güvenlik kameralarını ağa bağlayıp görüntüyü kayıt altına alır.</p>
+      </div>
+      <div class="product-card">
+        <div class="icon">▥</div><h3>Storage</h3>
+        <p>Kayıtların ve kurumsal verinin güvenli, ölçeklenebilir saklanması.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="lead-section" id="iletisim">
+    <div>
+      <h2>Sizi arayalım</h2>
+      <p>Kurumunuzun ihtiyaçlarını değerlendirip bir çözüm mühendisimizin sizinle iletişime geçmesini sağlayalım.</p>
+    </div>
+    <form class="lead-form" id="leadForm">
+      <div class="field">
+        <label for="isim">Ad Soyad</label>
+        <input id="isim" name="isim" type="text" required>
+      </div>
+      <div class="field">
+        <label for="telefon">Telefon</label>
+        <input id="telefon" name="telefon" type="tel" required>
+      </div>
+      <div class="field full">
+        <label for="kurum_turu">Kurum Türü</label>
+        <select id="kurum_turu" name="kurum_turu">
+          <option value="">Seçiniz (opsiyonel)</option>
+          <option value="Hastane">Hastane</option>
+          <option value="Okul">Okul</option>
+          <option value="Askeriye">Askeri Tesis</option>
+          <option value="Kamu Kurumu">Kamu Kurumu / Devlet Dairesi</option>
+          <option value="Banka">Banka</option>
+          <option value="Ofis / Şirket">Ofis / Şirket Binası</option>
+          <option value="Diğer">Diğer</option>
+        </select>
+      </div>
+      <div class="field full">
+        <label for="mesaj">Notunuz (opsiyonel)</label>
+        <textarea id="mesaj" name="mesaj"></textarea>
+      </div>
+      <div class="submit-row">
+        <button id="leadSubmit" type="submit">Kaydet</button>
+        <span class="form-status" id="formStatus"></span>
+      </div>
+    </form>
+  </section>
+
+  <footer>© 2026 Tesseract Teknoloji — Haberleşme, güvenlik ve veri altyapı sistemleri.</footer>
+</div>
+
+<script>
+  const chatBody = document.getElementById('chatBody');
+  const chatInput = document.getElementById('chatInput');
+  const chatSend = document.getElementById('chatSend');
+  let gecmis = [];
+
+  function mesajEkle(rol, icerik, gecici=false){
+    const div = document.createElement('div');
+    div.className = 'msg ' + (rol === 'user' ? 'user' : 'ai') + (gecici ? ' pending' : '');
+    div.textContent = icerik;
+    div.id = gecici ? 'pendingMsg' : '';
+    chatBody.appendChild(div);
+    chatBody.scrollTop = chatBody.scrollHeight;
+    return div;
+  }
+
+  async function mesajGonder(){
+    const mesaj = chatInput.value.trim();
+    if(!mesaj) return;
+    mesajEkle('user', mesaj);
+    gecmis.push({role:'user', content:mesaj});
+    chatInput.value = '';
+    chatSend.disabled = true;
+    const pending = mesajEkle('ai', 'Yazıyor...', true);
+
+    try{
+      const res = await fetch('/api/sohbet', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({mesaj: mesaj, gecmis: gecmis})
+      });
+      const data = await res.json();
+      pending.remove();
+      if(data.basari){
+        mesajEkle('ai', data.cevap);
+        gecmis.push({role:'assistant', content:data.cevap});
+      } else {
+        mesajEkle('ai', data.hata || 'Bir hata oluştu, lütfen tekrar deneyin.');
+      }
+    } catch(err){
+      pending.remove();
+      mesajEkle('ai', 'Sunucuya ulaşılamadı. Lütfen daha sonra tekrar deneyin.');
+    } finally {
+      chatSend.disabled = false;
+    }
+  }
+
+  chatSend.addEventListener('click', mesajGonder);
+  chatInput.addEventListener('keydown', e => { if(e.key === 'Enter') mesajGonder(); });
+
+  const leadForm = document.getElementById('leadForm');
+  const formStatus = document.getElementById('formStatus');
+  const leadSubmit = document.getElementById('leadSubmit');
+
+  leadForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    leadSubmit.disabled = true;
+    formStatus.textContent = '';
+    formStatus.className = 'form-status';
+
+    const payload = {
+      isim: document.getElementById('isim').value.trim(),
+      telefon: document.getElementById('telefon').value.trim(),
+      kurum_turu: document.getElementById('kurum_turu').value,
+      mesaj: document.getElementById('mesaj').value.trim()
+    };
+
+    try{
+      const res = await fetch('/api/leads', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      if(data.basari){
+        formStatus.textContent = 'Kaydınız alındı, en kısa sürede dönüş yapılacak.';
+        formStatus.className = 'form-status ok';
+        leadForm.reset();
+      } else {
+        formStatus.textContent = data.hata || 'Kayıt oluşturulamadı.';
+        formStatus.className = 'form-status err';
+      }
+    } catch(err){
+      formStatus.textContent = 'Sunucuya ulaşılamadı.';
+      formStatus.className = 'form-status err';
+    } finally {
+      leadSubmit.disabled = false;
+    }
+  });
+</script>
+</body>
+</html>

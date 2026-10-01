@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tesseract | Yönetim Paneli</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0B0F14; --surface:#121821; --surface-alt:#1A222E; --border:#28323F;
+    --text:#E8EDF3; --text-dim:#8B96A5; --accent:#3E7BFA; --ok:#3ED598;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;}
+  .shell{max-width:1180px;margin:0 auto;padding:32px 24px 80px;}
+
+  header{display:flex;align-items:center;justify-content:space-between;margin-bottom:32px;}
+  .brand{display:flex;align-items:center;gap:12px;}
+  .brand-mark{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,var(--accent),#1E4FD1);
+    display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk';font-weight:700;color:#fff;font-size:16px;}
+  .brand-text .wordmark{font-family:'Space Grotesk';font-weight:700;font-size:17px;}
+  .brand-text .tagline{font-size:12px;color:var(--text-dim);}
+  nav a{font-size:14px;color:var(--text-dim);text-decoration:none;margin-left:20px;}
+  nav a:hover{color:var(--text);}
+
+  .stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:28px;}
+  .stat-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px 20px;}
+  .stat-card .num{font-family:'Space Grotesk';font-size:26px;font-weight:700;}
+  .stat-card .lbl{font-size:12.5px;color:var(--text-dim);margin-top:4px;}
+
+  .panel{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;}
+  .panel-head{display:flex;justify-content:space-between;align-items:center;padding:18px 22px;border-bottom:1px solid var(--border);}
+  .panel-head h1{font-family:'Space Grotesk';font-size:18px;margin:0;font-weight:600;}
+  .panel-head button{
+    background:var(--surface-alt);border:1px solid var(--border);color:var(--text);
+    padding:8px 14px;border-radius:8px;font-size:13px;cursor:pointer;font-family:inherit;
+  }
+  .panel-head button:hover{border-color:var(--accent);}
+
+  table{width:100%;border-collapse:collapse;font-size:14px;}
+  thead th{
+    text-align:left;padding:12px 22px;color:var(--text-dim);font-weight:500;font-size:12.5px;
+    border-bottom:1px solid var(--border);
+  }
+  tbody td{padding:14px 22px;border-bottom:1px solid var(--border);vertical-align:top;}
+  tbody tr:last-child td{border-bottom:none;}
+  tbody tr:hover{background:var(--surface-alt);}
+  td.isim{font-weight:600;}
+  td.telefon,td.tarih{color:var(--text-dim);font-family:'IBM Plex Mono';font-size:12.5px;}
+  .tag{
+    display:inline-block;background:rgba(62,123,250,.14);color:var(--accent);
+    font-size:11.5px;padding:3px 9px;border-radius:6px;font-family:'IBM Plex Mono';
+  }
+  .msg-cell{color:var(--text-dim);max-width:280px;}
+  .empty-state{padding:60px 22px;text-align:center;color:var(--text-dim);}
+</style>
+</head>
+<body>
+<div class="shell">
+  <header>
+    <div class="brand">
+      <div class="brand-mark">T</div>
+      <div class="brand-text">
+        <div class="wordmark">TESSERACT</div>
+        <div class="tagline">Yönetim Paneli</div>
+      </div>
+    </div>
+    <nav><a href="/">Karşılama Sayfası</a></nav>
+  </header>
+
+  <div class="stat-row">
+    <div class="stat-card"><div class="num" id="statToplam">—</div><div class="lbl">Toplam kayıt</div></div>
+    <div class="stat-card"><div class="num" id="statBugun">—</div><div class="lbl">Bugün eklenen</div></div>
+    <div class="stat-card"><div class="num" id="statKurum">—</div><div class="lbl">En sık kurum türü</div></div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-head">
+      <h1>Müşteri Adayları (Leads)</h1>
+      <button id="yenileBtn">Yenile</button>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>Ad Soyad</th>
+          <th>Telefon</th>
+          <th>Kurum Türü</th>
+          <th>Not</th>
+          <th>Tarih</th>
+        </tr>
+      </thead>
+      <tbody id="leadTableBody"></tbody>
+    </table>
+    <div class="empty-state" id="emptyState" style="display:none;">Henüz kayıt yok. Karşılama sayfasından bir form gönderildiğinde burada görünecek.</div>
+  </div>
+</div>
+
+<script>
+  const tbody = document.getElementById('leadTableBody');
+  const emptyState = document.getElementById('emptyState');
+  const statToplam = document.getElementById('statToplam');
+  const statBugun = document.getElementById('statBugun');
+  const statKurum = document.getElementById('statKurum');
+
+  function hucreKac(deger){
+    const td = document.createElement('td');
+    td.textContent = deger || '—';
+    return td;
+  }
+
+  async function leadleriYukle(){
+    tbody.innerHTML = '';
+    try{
+      const res = await fetch('/api/leads');
+      const data = await res.json();
+      if(!data.basari){ throw new Error(data.hata); }
+
+      const leadler = data.leadler || [];
+      statToplam.textContent = leadler.length;
+
+      const bugun = new Date().toISOString().slice(0,10);
+      const bugunSayisi = leadler.filter(l => (l.tarih || '').startsWith(bugun)).length;
+      statBugun.textContent = bugunSayisi;
+
+      const sayaç = {};
+      leadler.forEach(l => { if(l.kurum_turu){ sayaç[l.kurum_turu] = (sayaç[l.kurum_turu]||0)+1; } });
+      const enSik = Object.entries(sayaç).sort((a,b)=>b[1]-a[1])[0];
+      statKurum.textContent = enSik ? enSik[0] : '—';
+
+      if(leadler.length === 0){
+        emptyState.style.display = 'block';
+        return;
+      }
+      emptyState.style.display = 'none';
+
+      leadler.forEach(lead => {
+        const tr = document.createElement('tr');
+
+        const tdIsim = document.createElement('td');
+        tdIsim.className = 'isim';
+        tdIsim.textContent = lead.isim;
+        tr.appendChild(tdIsim);
+
+        const tdTel = document.createElement('td');
+        tdTel.className = 'telefon';
+        tdTel.textContent = lead.telefon;
+        tr.appendChild(tdTel);
+
+        const tdKurum = document.createElement('td');
+        if(lead.kurum_turu){
+          const span = document.createElement('span');
+          span.className = 'tag';
+          span.textContent = lead.kurum_turu;
+          tdKurum.appendChild(span);
+        } else {
+          tdKurum.textContent = '—';
+        }
+        tr.appendChild(tdKurum);
+
+        const tdMesaj = document.createElement('td');
+        tdMesaj.className = 'msg-cell';
+        tdMesaj.textContent = lead.mesaj || '—';
+        tr.appendChild(tdMesaj);
+
+        const tdTarih = document.createElement('td');
+        tdTarih.className = 'tarih';
+        tdTarih.textContent = lead.tarih || '—';
+        tr.appendChild(tdTarih);
+
+        tbody.appendChild(tr);
+      });
+    } catch(err){
+      emptyState.style.display = 'block';
+      emptyState.textContent = 'Kayıtlar yüklenemedi. Sunucunun çalıştığından emin olun.';
+    }
+  }
+
+  document.getElementById('yenileBtn').addEventListener('click', leadleriYukle);
+  leadleriYukle();
+</script>
+</body>
+</html>
